@@ -2,11 +2,13 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Illuminate\Support\Facades\Auth;
 use App\Filament\Admin\Resources\CategoryResource\Pages;
 use App\Filament\Admin\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\FormsComponent;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -21,8 +23,11 @@ class CategoryResource extends Resource
 
     public static function form(Form $form): Form
     {
+        dd(Auth::user());
         return $form
             ->schema([
+                // Forms\Components\Hidden::make('user_id')
+                //     ->default(fn()=>auth()->id()),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -88,4 +93,9 @@ class CategoryResource extends Resource
             'edit' => Pages\EditCategory::route('/{record}/edit'),
         ];
     }
+
+    // public static function query(): Builder
+    // {
+    //     return parent::query()->where('user_id', auth()->id());
+    // }
 }
