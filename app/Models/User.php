@@ -50,6 +50,6 @@ class User extends Authenticatable
 
     public function canAccessFilament(): bool
     {
-        return true; // Semua pengguna bisa mengakses Filament
+        return true;
     }
 }

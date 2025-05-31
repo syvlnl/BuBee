@@ -34,7 +34,7 @@ class AuthController extends Controller
         
         $cresidentials = $request -> only('email', 'password');
         if(Auth::attempt($cresidentials)) {
-            return redirect() -> intended();
+            return redirect() -> intended('/admin');
         }
         return redirect(route('login')) -> with("error", "Login details are not valid");
     }
