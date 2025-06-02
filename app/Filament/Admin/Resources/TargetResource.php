@@ -2,37 +2,37 @@
 
 namespace App\Filament\Admin\Resources;
 
-use Illuminate\Support\Facades\Auth;
-use App\Filament\Admin\Resources\CategoryResource\Pages;
-use App\Filament\Admin\Resources\CategoryResource\RelationManagers;
-use App\Models\Category;
+use App\Filament\Admin\Resources\TargetResource\Pages;
+use App\Filament\Admin\Resources\TargetResource\RelationManagers;
+use App\Models\Target;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Forms\FormsComponent;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class CategoryResource extends Resource
+class TargetResource extends Resource
 {
-    protected static ?string $model = Category::class;
+    protected static ?string $model = Target::class;
 
-    protected static ?string $navigationIcon = 'heroicon-m-list-bullet';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                // Forms\Components\Hidden::make('user_id')
-                //     ->default(fn()=>auth()->id()),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Toggle::make('is_expense'),
-                Forms\Components\FileUpload::make('image')
-                    ->image()
+                Forms\Components\TextInput::make('amount_needed')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\TextInput::make('amount_collected')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\DatePicker::make('deadline')
                     ->required(),
             ]);
     }
@@ -41,25 +41,23 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image'),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\IconColumn::make('is_expense')
-                    ->label('Type')
-                    ->trueIcon('heroicon-c-arrow-up-right')
-                    ->falseIcon('heroicon-c-arrow-down-left')
-                    ->trueColor('danger')
-                    ->falseColor('success')
-                    ->boolean(),
+                Tables\Columns\TextColumn::make('amount_needed')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('amount_collected')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('deadline')
+                    ->date()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('status'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -87,14 +85,14 @@ class CategoryResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCategories::route('/'),
-            'create' => Pages\CreateCategory::route('/create'),
-            'edit' => Pages\EditCategory::route('/{record}/edit'),
+            'index' => Pages\ListTargets::route('/'),
+            'create' => Pages\CreateTarget::route('/create'),
+            'edit' => Pages\EditTarget::route('/{record}/edit'),
         ];
     }
 
-    // public static function query(): Builder
+    // public static function getEloquentQuery(): Builder
     // {
-    //     return parent::query()->where('user_id', auth()->id());
+    //     return parent::getEloquentQuery()->where('user_id', auth('users')->id());
     // }
 }

@@ -52,4 +52,14 @@ class User extends Authenticatable
     {
         return true;
     }
+
+    public function targets()
+    {
+        return $this->hasMany(Target::class);
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
 }
