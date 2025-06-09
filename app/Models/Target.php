@@ -21,8 +21,8 @@ class Target extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function scopeUserTargets($query)
-    {
-        return $query->where('user_id', auth()->id());
-    }
+    // public function scopeUserTargets($query)
+    // {
+    //     return $query->where('user_id', auth()->id());
+    // }
 }

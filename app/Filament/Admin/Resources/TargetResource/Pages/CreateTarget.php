@@ -13,8 +13,6 @@ class CreateTarget extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $user = Auth::user();
-        $data['user_id'] = $user()->id(); 
-        return $data;
+        return [...$data, 'user_id' => Auth::id()];
     }
 }

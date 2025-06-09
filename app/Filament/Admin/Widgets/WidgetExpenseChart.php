@@ -2,7 +2,10 @@
 
 namespace App\Filament\Admin\Widgets;
 
+use App\Models\Transaction;
 use Filament\Widgets\ChartWidget;
+use Flowframe\Trend\Trend;
+use Flowframe\Trend\TrendValue;
 
 class WidgetExpenseChart extends ChartWidget
 {
@@ -10,24 +13,25 @@ class WidgetExpenseChart extends ChartWidget
 
     protected function getData(): array
     {
+        $expense = Trend::query(Transaction::expenses())
+            ->between(
+                now()->startOfYear(),
+                now()->endOfYear(),
+            )
+            ->perMonth()
+            ->sum('amount');
+
         return [
             'datasets' => [
                 [
-                    'label' => 'Income',
-                    'data' => [5, 15, 25, 30, 45, 60, 80, 90, 100, 110, 125, 140],
-                    'borderColor' => '#28a745', 
-                    'backgroundColor' => 'rgba(40, 167, 69, 0.2)',
-                    'pointBackgroundColor' => '#28a745',
-                ],
-                [
-                    'label' => 'Expense',
-                    'data' => [0, 10, 5, 2, 21, 32, 45, 74, 65, 45, 77, 89],
-                    'borderColor' => '#dc3545', 
+                    'label' => 'expense per month',
+                    'data' => $expense->map(fn(TrendValue $value) => $value->aggregate),
+                    'borderColor' => '#dc3545',
                     'backgroundColor' => 'rgba(220, 53, 69, 0.2)',
                     'pointBackgroundColor' => '#dc3545',
                 ],
             ],
-            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'labels' => $expense->map(fn(TrendValue $value) => $value->date),
         ];
     }
 

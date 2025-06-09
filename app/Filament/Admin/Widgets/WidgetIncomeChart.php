@@ -21,14 +21,6 @@ class WidgetIncomeChart extends ChartWidget
             ->perMonth()
             ->sum('amount');
 
-        $expense = Trend::query(Transaction::expenses())
-            ->between(
-                now()->startOfYear(),
-                now()->endOfYear(),
-            )
-            ->perMonth()
-            ->sum('amount');
-
         return [
             'datasets' => [
                 [
@@ -37,13 +29,6 @@ class WidgetIncomeChart extends ChartWidget
                     'borderColor' => '#28a745',
                     'backgroundColor' => 'rgba(40, 167, 69, 0.2)',
                     'pointBackgroundColor' => '#28a745',
-                ],
-                [
-                    'label' => 'expense per month',
-                    'data' => $expense->map(fn(TrendValue $value) => $value->aggregate),
-                    'borderColor' => '#dc3545',
-                    'backgroundColor' => 'rgba(220, 53, 69, 0.2)',
-                    'pointBackgroundColor' => '#dc3545',
                 ],
             ],
             'labels' => $income->map(fn(TrendValue $value) => $value->date),

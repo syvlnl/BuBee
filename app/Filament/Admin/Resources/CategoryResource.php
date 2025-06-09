@@ -13,7 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Model;
 
 class CategoryResource extends Resource
 {
@@ -25,8 +25,6 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                // Forms\Components\Hidden::make('user_id')
-                //     ->default(fn()=>auth()->id()),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -93,8 +91,8 @@ class CategoryResource extends Resource
         ];
     }
 
-    // public static function query(): Builder
-    // {
-    //     return parent::query()->where('user_id', auth()->id());
-    // }
+    public static function getEloquentQuery(?Model $model = null): Builder
+    {
+        return parent::getEloquentQuery()->where(['user_id' => Auth::id()]);
+    }
 }

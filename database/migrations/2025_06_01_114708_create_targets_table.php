@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('name');
-            $table->bigInteger('amount_needed');
-            $table->bigInteger('amount_collected');
+            $table->unsignedBigInteger('amount_needed');
+            $table->unsignedBigInteger('amount_collected');
             $table->date('deadline');
             $table->enum('status', ['On Progress', 'Completed'])->default('On Progress');
             $table->timestamps();

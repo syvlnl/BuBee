@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Illuminate\Support\Facades\Auth;
 use App\Filament\Admin\Resources\TargetResource\Pages;
 use App\Filament\Admin\Resources\TargetResource\RelationManagers;
 use App\Models\Target;
@@ -11,7 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Model;
 
 class TargetResource extends Resource
 {
@@ -91,8 +92,8 @@ class TargetResource extends Resource
         ];
     }
 
-    // public static function getEloquentQuery(): Builder
-    // {
-    //     return parent::getEloquentQuery()->where('user_id', auth('users')->id());
-    // }
+    public static function getEloquentQuery(?Model $model = null): Builder
+    {
+        return parent::getEloquentQuery()->where(['user_id' => Auth::id()]);
+    }
 }

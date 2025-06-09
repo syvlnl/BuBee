@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $table->date('date');
-            $table->bigInteger('amount');
+            $table->date('date_transaction');
+            $table->unsignedBigInteger('amount');
             $table->text('note')->nullable();
             $table->string('image')->nullable();
             $table->timestamps();

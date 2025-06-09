@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources;
 
+use Illuminate\Support\Facades\Auth;
 use App\Filament\Admin\Resources\TransactionResource\Pages;
 use App\Filament\Admin\Resources\TransactionResource\RelationManagers;
 use App\Models\Transaction;
@@ -11,7 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Model;
 
 class TransactionResource extends Resource
 {
@@ -27,9 +28,11 @@ class TransactionResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('category_id')
-                    ->relationship('category', 'name')
-                    ->searchable()
-                    ->required(),
+                    ->relationship('category', 'name', function (Builder $query) {
+                        return $query->where(['user_id' => Auth::id()]);
+                    })
+                ->searchable()
+                ->required(),
                 Forms\Components\DatePicker::make('date_transaction')
                     ->required(),
                 Forms\Components\TextInput::make('amount')
@@ -101,5 +104,10 @@ class TransactionResource extends Resource
             'create' => Pages\CreateTransaction::route('/create'),
             'edit' => Pages\EditTransaction::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(?Model $model = null): Builder
+    {
+        return parent::getEloquentQuery()->where(['user_id' => Auth::id()]);
     }
 }
