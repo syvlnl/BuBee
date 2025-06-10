@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\ProgressColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,7 +19,7 @@ class TargetResource extends Resource
 {
     protected static ?string $model = Target::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-c-rocket-launch';
 
     public static function form(Form $form): Form
     {
@@ -31,8 +32,12 @@ class TargetResource extends Resource
                     ->required()
                     ->numeric(),
                 Forms\Components\TextInput::make('amount_collected')
+                    ->numeric()
                     ->required()
-                    ->numeric(),
+                    ->default(fn($record) => $record?->amount_collected ?? 0)
+                    ->live()
+                    ->afterStateUpdated(fn($state, $record) => $record ? $record->update(['amount_collected' => $record->amount_collected + $state, 'status' => ($record->amount_collected + $state) >= $record->amount_needed ? 'Completed' : 'On Progress']) : null)
+                    ->label('Amount Collected'),
                 Forms\Components\DatePicker::make('deadline')
                     ->required(),
             ]);
@@ -53,7 +58,10 @@ class TargetResource extends Resource
                 Tables\Columns\TextColumn::make('deadline')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('status')
+                    ->formatStateUsing(fn($record) => min(round(($record->amount_collected / max($record->amount_needed, 1)) * 100, 2), 100) . '%')
+                    ->label('Progress')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -62,6 +70,24 @@ class TargetResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->headerActions([
+                Tables\Actions\Action::make('New Target')
+                    ->modal()
+                    ->form([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('amount_needed')
+                            ->required()
+                            ->numeric(),
+                        Forms\Components\TextInput::make('amount_collected')
+                            ->numeric()
+                            ->default(0),
+                        Forms\Components\DatePicker::make('deadline')
+                            ->required(),
+                    ])
+                    ->action(fn(array $data) => Target::create($data)),
             ])
             ->filters([
                 //

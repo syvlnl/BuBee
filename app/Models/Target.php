@@ -21,8 +21,16 @@ class Target extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // public function scopeUserTargets($query)
-    // {
-    //     return $query->where('user_id', auth()->id());
-    // }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($target) {
+            if ($target->amount_collected >= $target->amount_needed) {
+                $target->status = 'completed';
+            } else {
+                $target->status = 'on progress';
+            }
+        });
+    }
 }

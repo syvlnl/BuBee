@@ -18,7 +18,7 @@ class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-c-document-currency-dollar';
 
     public static function form(Form $form): Form
     {
@@ -48,7 +48,7 @@ class TransactionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Transaction::with('category'))
+            ->query(Transaction::where('user_id', Auth::id())->with('category'))
             ->columns([
                 Tables\Columns\ImageColumn::make('category.image'),
                 Tables\Columns\TextColumn::make('category.name')
@@ -76,6 +76,29 @@ class TransactionResource extends Resource
                     ->date()
                     ->sortable()
                     ->label('Created at'),
+            ])
+            ->headerActions([
+                Tables\Actions\Action::make('New Transaction')
+                    ->modal()
+                    ->form([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Select::make('category_id')
+                            ->relationship('category', 'name', function (Builder $query) {return $query->where(['user_id' => Auth::id()]);})
+                            ->searchable()
+                            ->required(),
+                        Forms\Components\DatePicker::make('date_transaction')
+                            ->required(),
+                        Forms\Components\TextInput::make('amount')
+                            ->required()
+                            ->numeric(),
+                        Forms\Components\Textarea::make('note')
+                            ->columnSpanFull(),
+                        Forms\Components\FileUpload::make('image')
+                            ->image(),
+            ])
+                    ->action(fn(array $data) => Transaction::create($data)),
             ])
             ->filters([
                 //

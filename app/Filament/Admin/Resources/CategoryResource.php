@@ -62,11 +62,25 @@ class CategoryResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->headerActions([
+                Tables\Actions\Action::make('New Category')
+                    ->modal()
+                    ->form([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Toggle::make('is_expense'),
+                        Forms\Components\FileUpload::make('image')
+                            ->image()
+                            ->required(),
+                    ])
+                    ->action(fn(array $data) => Category::create($data)),
+            ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->modal(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
