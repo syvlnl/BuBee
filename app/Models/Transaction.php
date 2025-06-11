@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
@@ -28,14 +29,18 @@ class Transaction extends Model
 
     public static function scopeExpenses($query)
     {
-        return $query->whereHas('category', function ($query) {
+        return $query->whereHas('user', function ($query) {
+            $query->where('id', Auth::id());
+        })->whereHas('category', function ($query) {
             $query->where('is_expense', true);
         });
     }
 
     public static function scopeIncomes($query)
     {
-        return $query->whereHas('category', function ($query) {
+        return $query->whereHas('user', function ($query) {
+            $query->where('id', Auth::id());
+        })->whereHas('category', function ($query) {
             $query->where('is_expense', false);
         });
     }
