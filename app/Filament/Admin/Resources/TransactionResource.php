@@ -98,8 +98,8 @@ class TransactionResource extends Resource
                         Forms\Components\FileUpload::make('image')
                             ->image(),
             ])
-                    ->action(fn(array $data) => Transaction::create($data)),
-            ])
+                    ->action(fn(array $data) => Transaction::create([...$data, 'user_id' => Auth::id()])),
+        ])
             ->filters([
                 //
             ])

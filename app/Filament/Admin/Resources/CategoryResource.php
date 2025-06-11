@@ -74,7 +74,7 @@ class CategoryResource extends Resource
                             ->image()
                             ->required(),
                     ])
-                    ->action(fn(array $data) => Category::create($data)),
+                    ->action(fn(array $data) => Category::create([...$data, 'user_id' => Auth::id()])),
             ])
             ->filters([
                 //

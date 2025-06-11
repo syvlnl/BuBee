@@ -87,7 +87,7 @@ class TargetResource extends Resource
                         Forms\Components\DatePicker::make('deadline')
                             ->required(),
                     ])
-                    ->action(fn(array $data) => Target::create($data)),
+                    ->action(fn(array $data) => Target::create([...$data, 'user_id' => Auth::id()])),
             ])
             ->filters([
                 //
