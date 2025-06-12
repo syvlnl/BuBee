@@ -50,6 +50,21 @@ class User extends Authenticatable
 
     public function canAccessFilament(): bool
     {
-        return true; // Semua pengguna bisa mengakses Filament
+        return true;
+    }
+
+    public function targets()
+    {
+        return $this->hasMany(Target::class);
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
+
+    public function transaction()
+    {
+        return $this->hasMany(Category::class);
     }
 }

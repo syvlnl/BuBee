@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 use function Laravel\Prompts\password;
 
@@ -28,23 +29,29 @@ class AuthController extends Controller
 
     function loginPost(Request $request) {
         $request -> validate([
-            'email' => 'required',
-            'password' => 'required'
+            'email' => 'required|email',
+            'password' => 'required|min:8'
         ]);
         
         $cresidentials = $request -> only('email', 'password');
         if(Auth::attempt($cresidentials)) {
-            return redirect() -> intended();
+            return redirect() -> intended('/admin');
         }
         return redirect(route('login')) -> with("error", "Login details are not valid");
     }
 
     function registrationPost(Request $request) {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required'
-        ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:50',
+            'email' => 'required|email|unique:users|max:255',
+            'password' => 'required|min:8|regex:/^(?=.*[A-Z])(?=.*\d).+$/'], [
+            'password.regex' => 'Password must contain at least one uppercase letter and one number.',
+            'password.min' => 'Password must be at least 8 characters.'
+            ]);
+
+            if ($validator->fails()) {
+                return redirect(route('registration'))->withErrors($validator)->withInput();
+            }
 
         $data['name'] = $request -> name;
         $data['email'] = $request -> email;

@@ -7,6 +7,16 @@
       <h2 class="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">Register</h2>
       <p>Already have an account? <a class="text-[#cc7700] hover:text-[#a35f00]" href="login">Log in</a> here.</p>
 
+      @if ($errors->any())
+        <div class="my-4 p-3 rounded-md bg-red-100 text-red-800 text-sm border border-red-300">
+          <ul>
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
+
       @if(session('error'))
         <div class="my-4 p-3 rounded-md bg-red-100    text-red-800 text-sm border border-red-300"> 
           {{ session('error') }}
