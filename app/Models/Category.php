@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Category extends Model
 {
     protected $fillable = [
-        'user_id',
         'name',
         'is_expense',
-        'image'
+        'image',
+        'user_id'
     ];
 
     public function transactions()

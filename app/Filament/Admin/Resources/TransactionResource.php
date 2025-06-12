@@ -4,101 +4,148 @@ namespace App\Filament\Admin\Resources;
 
 use Illuminate\Support\Facades\Auth;
 use App\Filament\Admin\Resources\TransactionResource\Pages;
-use App\Filament\Admin\Resources\TransactionResource\RelationManagers;
 use App\Models\Transaction;
+use App\Models\Target;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 
 class TransactionResource extends Resource
 {
     protected static ?string $model = Transaction::class;
-
     protected static ?string $navigationIcon = 'heroicon-c-document-currency-dollar';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Toggle::make('is_saving')
+                    ->label('Add to Savings Target?')
+                    ->live()
+                    ->dehydrated(true)
+                    ->columnSpanFull(),
+
+                Forms\Components\Select::make('target_id')
+                    ->label('Savings Target')
+                    ->options(Target::where('user_id', Auth::id())->pluck('name', 'target_id'))
+                    ->searchable()
+                    ->required()
+                    ->visible(fn (Get $get): bool => $get('is_saving')),
+
+                Forms\Components\Select::make('category_id')
+                    ->relationship('category', 'name', fn (Builder $query) => $query->where('user_id', Auth::id()))
+                    ->searchable()
+                    ->required()
+                    ->visible(fn (Get $get): bool => !$get('is_saving')),
+
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('category_id')
-                    ->relationship('category', 'name', function (Builder $query) {
-                        return $query->where(['user_id' => Auth::id()]);
-                    })
-                ->searchable()
-                ->required(),
+
                 Forms\Components\DatePicker::make('date_transaction')
                     ->required(),
+
                 Forms\Components\TextInput::make('amount')
                     ->required()
                     ->numeric(),
+
                 Forms\Components\Textarea::make('note')
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->visible(fn (Get $get): bool => !$get('is_saving')),
+
                 Forms\Components\FileUpload::make('image')
-                    ->image(),
+                    ->image()
+                    ->visible(fn (Get $get): bool => !$get('is_saving')),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Transaction::where('user_id', Auth::id())->with('category'))
+            ->query(Transaction::where('user_id', Auth::id())->with(['category', 'target']))
             ->columns([
-                Tables\Columns\ImageColumn::make('category.image'),
-                Tables\Columns\TextColumn::make('category.name')
-                    ->searchable()
-                    ->description(fn (Transaction $record): string => $record->name)
-                    ->label('Transaction'),
-                Tables\Columns\IconColumn::make('category.is_expense')
-                    ->boolean()
+                TextColumn::make('category_display')
+                    ->label('Category')
                     ->sortable()
-                    ->trueIcon('heroicon-c-arrow-up-right')
-                    ->falseIcon('heroicon-c-arrow-down-left')
-                    ->trueColor('danger')
-                    ->falseColor('success')
-                    ->label('Type'),
+                    ->searchable(query: function ($query, $search) {
+                        $query->whereHas('category', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                            ->orWhere(function ($q) use ($search) {
+                                $q->where('is_saving', 1)
+                                    ->whereRaw("'Saving' LIKE ?", ["%{$search}%"]);
+                            });
+                    })
+                    ->getStateUsing(function ($record) {
+                        return $record->is_saving ? 'Saving' : ($record->category->name ?? '-');
+                    }),
+    
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Name')
+                    ->formatStateUsing(function (Transaction $record) {
+                        $name = e($record->name);
+    
+                        if ($record->is_saving && $record->target) {
+                            return nl2br("{$name}\n" . e($record->target->name));
+                        }
+    
+                        return $name;
+                    })
+                    ->html()
+                    ->wrap()
+                    ->sortable(),
+                
+                // Icon nya ga keluar
+                Tables\Columns\IconColumn::make('type_display')
+                    ->label('Type')
+                    ->icon(function (Transaction $record) {
+                        if ($record->is_saving) {
+                            return 'lucide-piggy-bank'; // contoh ikon untuk saving
+                        }
+
+                        return $record->category?->is_expense
+                            ? 'lucide-arrow-down-left'
+                            : 'lucide-arrow-up-right';
+                    })
+                    ->color(function (Transaction $record) {
+                        if ($record->is_saving) {
+                            return 'gray';
+                        }
+
+                        return $record->category?->is_expense ? 'danger' : 'success';
+                    })
+                    ->tooltip(function (Transaction $record) {
+                        if ($record->is_saving) {
+                            return 'Saving';
+                        }
+
+                        return $record->category?->is_expense ? 'Expense' : 'Income';
+                    }),
+    
                 Tables\Columns\TextColumn::make('amount')
                     ->numeric()
                     ->money('IDR', locale: 'id')
                     ->sortable(),
+    
                 Tables\Columns\TextColumn::make('updated_at')
                     ->date()
                     ->label('Updated at')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+    
                 Tables\Columns\TextColumn::make('date_transaction')
                     ->date()
                     ->sortable()
                     ->label('Created at'),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('New Transaction')
-                    ->modal()
-                    ->form([
-                        Forms\Components\TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\Select::make('category_id')
-                            ->relationship('category', 'name', function (Builder $query) {return $query->where(['user_id' => Auth::id()]);})
-                            ->searchable()
-                            ->required(),
-                        Forms\Components\DatePicker::make('date_transaction')
-                            ->required(),
-                        Forms\Components\TextInput::make('amount')
-                            ->required()
-                            ->numeric(),
-                        Forms\Components\Textarea::make('note')
-                            ->columnSpanFull(),
-                        Forms\Components\FileUpload::make('image')
-                            ->image(),
-            ])
-                    ->action(fn(array $data) => Transaction::create($data)),
+                Tables\Actions\CreateAction::make()->label('New Transaction'),
             ])
             ->filters([
                 //
@@ -111,6 +158,15 @@ class TransactionResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+    
+    public static function afterCreate(Transaction $record): void
+    {
+        if ($record->is_saving && $record->target_id && $record->amount) {
+            $target = $record->target;
+            $target->amount_collected += $record->amount;
+            $target->save();
+        }
     }
 
     public static function getRelations(): array
@@ -131,6 +187,6 @@ class TransactionResource extends Resource
 
     public static function getEloquentQuery(?Model $model = null): Builder
     {
-        return parent::getEloquentQuery()->where(['user_id' => Auth::id()]);
+        return parent::getEloquentQuery()->where('user_id', Auth::id());
     }
 }

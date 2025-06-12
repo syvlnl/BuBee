@@ -11,7 +11,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\ProgressColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,22 +20,24 @@ class TargetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-c-rocket-launch';
 
+    protected static ?string $recordKey = 'target_id';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('amount_needed')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->prefix('Rp'),
                 Forms\Components\TextInput::make('amount_collected')
                     ->numeric()
-                    ->required()
-                    ->default(fn($record) => $record?->amount_collected ?? 0)
-                    ->live()
-                    ->afterStateUpdated(fn($state, $record) => $record ? $record->update(['amount_collected' => $record->amount_collected + $state, 'status' => ($record->amount_collected + $state) >= $record->amount_needed ? 'Completed' : 'On Progress']) : null)
+                    ->prefix('Rp')
+                    ->disabled() 
                     ->label('Amount Collected'),
                 Forms\Components\DatePicker::make('deadline')
                     ->required(),
@@ -46,26 +47,32 @@ class TargetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('amount_needed')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('amount_collected')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('deadline')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->formatStateUsing(fn($record) => min(round(($record->amount_collected / max($record->amount_needed, 1)) * 100, 2), 100) . '%')
-                    ->label('Progress')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+        ->columns([
+            Tables\Columns\TextColumn::make('name')
+                ->searchable(),
+            Tables\Columns\TextColumn::make('amount_needed')
+                ->numeric()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('amount_collected')
+                ->numeric()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('deadline')
+                ->date()
+                ->sortable(),
+            // Progress ga muncul
+            Tables\Columns\TextColumn::make('progress')
+                ->formatStateUsing(fn($record) => min(round(($record->amount_collected / max($record->amount_needed, 1)) * 100, 2), 100) . '%')
+                ->label('Progress')
+                ->sortable(),
+            Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->label('Status')
+                    ->color(fn (string $state): string => match ($state) {
+                        'On Progress' => 'warning',
+                        'Completed' => 'success',
+                        default => 'gray',
+                    }),
+                    
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
@@ -80,20 +87,24 @@ class TargetResource extends Resource
                             ->maxLength(255),
                         Forms\Components\TextInput::make('amount_needed')
                             ->required()
-                            ->numeric(),
-                        Forms\Components\TextInput::make('amount_collected')
                             ->numeric()
-                            ->default(0),
+                            ->prefix('Rp'),
                         Forms\Components\DatePicker::make('deadline')
                             ->required(),
                     ])
-                    ->action(fn(array $data) => Target::create($data)),
+                    ->action(fn(array $data) => Target::create([
+                        ...$data,
+                        'user_id' => Auth::id(),
+                        'amount_collected' => 0
+                    ]))
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->url(fn (Target $record): string => static::getUrl('edit', ['record' => $record])),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

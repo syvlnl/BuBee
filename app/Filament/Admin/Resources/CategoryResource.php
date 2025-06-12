@@ -32,6 +32,7 @@ class CategoryResource extends Resource
                 Forms\Components\FileUpload::make('image')
                     ->image()
                     ->required(),
+                    
             ]);
     }
 
@@ -74,7 +75,7 @@ class CategoryResource extends Resource
                             ->image()
                             ->required(),
                     ])
-                    ->action(fn(array $data) => Category::create($data)),
+                    ->action(fn(array $data) => Category::create([...$data, 'user_id' => Auth::id()]))
             ])
             ->filters([
                 //
@@ -87,6 +88,13 @@ class CategoryResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['user_id'] = Auth::id(); 
+    
+        return $data;
     }
 
     public static function getRelations(): array

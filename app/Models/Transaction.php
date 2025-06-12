@@ -8,13 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $fillable = [
-        'user_id',
         'name',
+        'user_id',
         'category_id',
+        'target_id',
+        'is_saving',
         'date_transaction',
         'amount',
         'note',
-        'image' 
+        'image',
     ];
 
     public function category()
@@ -44,4 +46,12 @@ class Transaction extends Model
             $query->where('is_expense', false);
         });
     }
+
+    public function target()
+    {
+        return $this->belongsTo(Target::class);
+    }
+    protected $casts = [
+        'is_saving' => 'boolean',
+    ];
 }

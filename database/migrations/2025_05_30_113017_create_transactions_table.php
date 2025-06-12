@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->boolean('is_saving')->default(false);
             $table->date('date_transaction');
             $table->unsignedBigInteger('amount');
             $table->text('note')->nullable();

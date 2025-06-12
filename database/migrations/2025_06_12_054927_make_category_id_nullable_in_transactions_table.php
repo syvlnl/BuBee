@@ -11,18 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('targets', function (Blueprint $table) {
-                $table->dropColumn('amount_collected');
-            });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('targets', function (Blueprint $table) {
-            $table->unsignedBigInteger('amount_collected')->default(0);
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->unsignedBigInteger('category_id')->nullable()->change();
         });
     }
+
+    public function down(): void
+    {
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->unsignedBigInteger('category_id')->nullable(false)->change();
+        });
+    }
+
 };

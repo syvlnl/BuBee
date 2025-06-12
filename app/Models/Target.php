@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Target extends Model
 {
+
+    protected $primaryKey = 'target_id'; 
+    public $incrementing = true;        
+    protected $keyType = 'int';
+
     protected $fillable = [
         'user_id',
         'name',
@@ -33,4 +38,19 @@ class Target extends Model
             }
         });
     }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'target_id';
+    }
+
+    protected $casts = [
+        'deadline' => 'datetime',
+    ];
+
 }

@@ -22,4 +22,8 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 
+    protected $observers = [
+        Transaction::class => [TransactionObserver::class], // <-- Tambahkan baris ini
+    ];
+
 }

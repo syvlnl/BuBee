@@ -18,6 +18,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\NavigationItem; 
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -59,6 +60,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->font(
                 'Poppins'
-            );
+            )
+            ->navigationItems([
+                NavigationItem::make('Contact Us')
+                    ->url('https://wa.me/6281234567890', shouldOpenInNewTab: true) 
+                    ->icon('heroicon-o-chat-bubble-left-right') 
+                    ->group('Support') 
+                    ->sort(99), 
+            ]);
     }
 }
