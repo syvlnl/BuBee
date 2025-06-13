@@ -54,3 +54,4 @@ class Target extends Model
     ];
 
 }
+
