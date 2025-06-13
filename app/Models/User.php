@@ -52,4 +52,14 @@ class User extends Authenticatable
     {
         return true; // Semua pengguna bisa mengakses Filament
     }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function targets()
+    {
+        return $this->hasmany(Target::class);
+    }
 }
