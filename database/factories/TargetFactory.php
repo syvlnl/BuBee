@@ -18,24 +18,17 @@ class TargetFactory extends Factory
      */
     public function definition(): array
     {
-        $target = $this->faker->randomFloat(2, 10, 10000000); // Angka acak antara 10 dan 10000000 dengan 2 desimal
-        $amount = $this->faker->randomFloat(2, 10, $target); // Angka acak antara 10 dan 10000000 dengan 2 desimal
-        $today = now()->toDateString();
-        $target_date = $this->faker->date();
-        if ($amount >= $target) {
-            $status = 'completed';
-        } elseif ($today > $target_date) {
-            $status = 'failed';
-        } else {
-            $status = 'active';
-        }
+        $amount_needed = $this->faker->randomFloat(2, 100, 10000000);
+        $amount_collected = $this->faker->randomFloat(2, 0, $amount_needed);
+        $deadline = $this->faker->dateTimeBetween('now', '+2 years');
+        $status = $amount_collected >= $amount_needed ? 'Completed' : 'On Progress';
         return [
-            'user_id' => User::factory(), // Menggunakan factory untuk membuat user baru
-            'title' => $this->faker->sentence(),
-            'amount' => $amount,
-            'target' => $target,
-            'target_date' => $this->faker->date(),
-            'status' => $status, // Status berdasarkan logika yang telah ditentukan
+            'user_id' => User::factory(),
+            'name' => $this->faker->sentence(),
+            'amount_needed' => $amount_needed,
+            'amount_collected' => $amount_collected,
+            'deadline' => $deadline,
+            'status' => $status,
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Category;
 
 class UserSeeder extends Seeder
 {
@@ -13,6 +14,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // Create categories for users
+        $categories = Category::factory()->count(10)->create();
+
         User::factory()
             ->count(10)
             ->hasTransactions(5) // Setiap user memiliki 5 transaksi

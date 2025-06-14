@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Target extends Model
 {
-
+    use HasFactory;
     protected $primaryKey = 'target_id'; 
     public $incrementing = true;        
     protected $keyType = 'int';
@@ -32,9 +33,9 @@ class Target extends Model
 
         static::saving(function ($target) {
             if ($target->amount_collected >= $target->amount_needed) {
-                $target->status = 'completed';
+                $target->status = 'Completed';
             } else {
-                $target->status = 'on progress';
+                $target->status = 'On Progress';
             }
         });
     }

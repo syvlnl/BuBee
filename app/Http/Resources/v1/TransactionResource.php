@@ -16,12 +16,16 @@ class TransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'name' => $this->name,
             'userId' => $this->user_id,
-            'title' => $this->title,
-            'type' => $this->type,
-            'category' => $this->category,
+            'categoryId' => $this->category_id,
+            'targetId' => $this->target_id,
+            'isSaving' => $this->is_saving,
+            'dateTransaction' => $this->date_transaction,
             'amount' => $this->amount,
-            'transactionDate' => $this->transaction_date,
+            'note' => $this->note,
+            'image' => $this->image,
+            'category' => new CategoryResource($this->whenLoaded('category')),
         ];
     }
 }
