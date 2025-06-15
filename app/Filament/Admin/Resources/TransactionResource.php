@@ -38,13 +38,13 @@ class TransactionResource extends Resource
                     ->options(Target::where('user_id', Auth::id())->pluck('name', 'target_id'))
                     ->searchable()
                     ->required()
-                    ->visible(fn (Get $get): bool => $get('is_saving')),
+                    ->visible(fn(Get $get): bool => $get('is_saving')),
 
                 Forms\Components\Select::make('category_id')
-                    ->relationship('category', 'name', fn (Builder $query) => $query->where('user_id', Auth::id()))
+                    ->relationship('category', 'name', fn(Builder $query) => $query->where('user_id', Auth::id()))
                     ->searchable()
                     ->required()
-                    ->visible(fn (Get $get): bool => !$get('is_saving')),
+                    ->visible(fn(Get $get): bool => !$get('is_saving')),
 
                 Forms\Components\TextInput::make('name')
                     ->required()
@@ -59,11 +59,11 @@ class TransactionResource extends Resource
 
                 Forms\Components\Textarea::make('note')
                     ->columnSpanFull()
-                    ->visible(fn (Get $get): bool => !$get('is_saving')),
+                    ->visible(fn(Get $get): bool => !$get('is_saving')),
 
                 Forms\Components\FileUpload::make('image')
                     ->image()
-                    ->visible(fn (Get $get): bool => !$get('is_saving')),
+                    ->visible(fn(Get $get): bool => !$get('is_saving')),
             ]);
     }
 
@@ -76,7 +76,7 @@ class TransactionResource extends Resource
                     ->label('Category')
                     ->sortable()
                     ->searchable(query: function ($query, $search) {
-                        $query->whereHas('category', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                        $query->whereHas('category', fn($q) => $q->where('name', 'like', "%{$search}%"))
                             ->orWhere(function ($q) use ($search) {
                                 $q->where('is_saving', 1)
                                     ->whereRaw("'Saving' LIKE ?", ["%{$search}%"]);
@@ -85,60 +85,55 @@ class TransactionResource extends Resource
                     ->getStateUsing(function ($record) {
                         return $record->is_saving ? 'Saving' : ($record->category->name ?? '-');
                     }),
-    
+
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
                     ->formatStateUsing(function (Transaction $record) {
                         $name = e($record->name);
-    
+
                         if ($record->is_saving && $record->target) {
                             return nl2br("{$name}\n" . e($record->target->name));
                         }
-    
+
                         return $name;
                     })
                     ->html()
                     ->wrap()
                     ->sortable(),
-                
-                // Icon nya ga keluar
-                Tables\Columns\IconColumn::make('type_display')
+
+                Tables\Columns\IconColumn::make('type')
                     ->label('Type')
-                    ->icon(function (Transaction $record) {
-                        if ($record->is_saving) {
-                            return 'lucide-piggy-bank'; // contoh ikon untuk saving
-                        }
-
-                        return $record->category?->is_expense
-                            ? 'lucide-arrow-down-left'
-                            : 'lucide-arrow-up-right';
+                    ->getStateUsing(
+                        fn(Transaction $record): string =>
+                        $record->is_saving ? 'saving' : ($record->category?->is_expense ? 'expense' : 'income')
+                    )
+                    ->icon(fn(string $state): string => match ($state) {
+                        'saving' => 'heroicon-c-arrow-down-on-square',
+                        'expense' => 'heroicon-c-arrow-up-left',
+                        'income' => 'heroicon-c-arrow-up-right',
                     })
-                    ->color(function (Transaction $record) {
-                        if ($record->is_saving) {
-                            return 'gray';
-                        }
-
-                        return $record->category?->is_expense ? 'danger' : 'success';
+                    ->color(fn(string $state): string => match ($state) {
+                        'saving' => 'info',
+                        'expense' => 'danger',
+                        'income' => 'success',
                     })
-                    ->tooltip(function (Transaction $record) {
-                        if ($record->is_saving) {
-                            return 'Saving';
-                        }
-
-                        return $record->category?->is_expense ? 'Expense' : 'Income';
+                    ->tooltip(fn(string $state): string => match ($state) {
+                        'saving' => 'Saving',
+                        'expense' => 'Expense',
+                        'income' => 'Income',
                     }),
-    
+
                 Tables\Columns\TextColumn::make('amount')
                     ->numeric()
                     ->money('IDR', locale: 'id')
                     ->sortable(),
-    
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->date()
                     ->label('Updated at')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-    
+
                 Tables\Columns\TextColumn::make('date_transaction')
                     ->date()
                     ->sortable()
@@ -159,7 +154,7 @@ class TransactionResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function afterCreate(Transaction $record): void
     {
         if ($record->is_saving && $record->target_id && $record->amount) {

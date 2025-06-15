@@ -49,8 +49,9 @@ class Transaction extends Model
 
     public function target()
     {
-        return $this->belongsTo(Target::class);
+        return $this->belongsTo(Target::class, 'target_id');
     }
+    
     protected $casts = [
         'is_saving' => 'boolean',
     ];

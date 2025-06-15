@@ -41,7 +41,7 @@ class Target extends Model
 
     public function transactions()
     {
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(Transaction::class, 'target_id', 'target_id');
     }
 
     public function getRouteKeyName()
@@ -53,4 +53,8 @@ class Target extends Model
         'deadline' => 'datetime',
     ];
 
+    public function getAmountCollectedAttribute(): float
+    {
+        return $this->transactions()->sum('amount');
+    }
 }

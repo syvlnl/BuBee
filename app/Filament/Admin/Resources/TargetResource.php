@@ -35,10 +35,11 @@ class TargetResource extends Resource
                     ->numeric()
                     ->prefix('Rp'),
                 Forms\Components\TextInput::make('amount_collected')
-                    ->numeric()
+                    ->disabled()
                     ->prefix('Rp')
-                    ->disabled() 
-                    ->label('Amount Collected'),
+                    ->label('Amount Collected')
+                    ->dehydrated(false) // jangan ikut disimpan
+                    ->default(fn(?Target $record) => $record?->amount_collected ?? 0),
                 Forms\Components\DatePicker::make('deadline')
                     ->required(),
             ]);
@@ -52,16 +53,18 @@ class TargetResource extends Resource
                 ->searchable(),
             Tables\Columns\TextColumn::make('amount_needed')
                 ->numeric()
+                ->money('IDR', locale: 'id')
                 ->sortable(),
             Tables\Columns\TextColumn::make('amount_collected')
+                ->state(fn(Target $record) => $record->amount_collected)
                 ->numeric()
+                ->money('IDR', locale: 'id')
                 ->sortable(),
             Tables\Columns\TextColumn::make('deadline')
                 ->date()
                 ->sortable(),
-            // Progress ga muncul
             Tables\Columns\TextColumn::make('progress')
-                ->formatStateUsing(fn($record) => min(round(($record->amount_collected / max($record->amount_needed, 1)) * 100, 2), 100) . '%')
+                ->state(fn(Target $record) => $record->status === 'completed' ? '100%' : (min(round(($record->amount_collected / max($record->amount_needed, 1)) * 100, 2), 100) . '%'))
                 ->label('Progress')
                 ->sortable(),
             Tables\Columns\TextColumn::make('status')
