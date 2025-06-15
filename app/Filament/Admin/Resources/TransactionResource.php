@@ -109,8 +109,8 @@ class TransactionResource extends Resource
                     )
                     ->icon(fn(string $state): string => match ($state) {
                         'saving' => 'heroicon-c-arrow-down-on-square',
-                        'expense' => 'heroicon-c-arrow-up-left',
-                        'income' => 'heroicon-c-arrow-up-right',
+                        'expense' => 'heroicon-c-arrow-up-right',
+                        'income' => 'heroicon-c-arrow-down-left',
                     })
                     ->color(fn(string $state): string => match ($state) {
                         'saving' => 'info',
