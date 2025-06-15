@@ -4,18 +4,29 @@ namespace App\Services\v1;
 
 use Illuminate\Http\Request;
 
-class UserQuery
+class TransactionQuery
 {
     protected $safeParms = [
         'name' => ['like', 'eq'],
-        'email' => ['like', 'eq'],
+        'isSaving' => ['eq'],
+        'dateTransaction' => ['eq', 'gt', 'lt'],
+        'amount' => ['eq', 'gt', 'lt'],
+        'note' => ['like'],
     ];
 
-    protected $collumsMap = [];
+    protected $collumsMap = [
+        'name' => 'name',
+        'isSaving' => 'is_saving',
+        'dateTransaction' => 'date_transaction',
+        'amount' => 'amount',
+        'note' => 'note',
+    ];
 
     protected $operatorMap = [
         'like' => 'like',
         'eq' => '=',
+        'gt' => '>=',
+        'lt' => '<=',
     ];
 
     public function transform(Request $request)

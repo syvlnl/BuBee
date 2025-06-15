@@ -4,18 +4,29 @@ namespace App\Services\v1;
 
 use Illuminate\Http\Request;
 
-class UserQuery
+class TargetQuery
 {
     protected $safeParms = [
         'name' => ['like', 'eq'],
-        'email' => ['like', 'eq'],
+        'amountNeeded' => ['eq', 'gt', 'lt'],
+        'amountCollected' => ['eq', 'gt', 'lt'],
+        'deadline' => ['eq', 'gt', 'lt'],
+        'status' => ['eq'],
     ];
 
-    protected $collumsMap = [];
+    protected $collumsMap = [
+        'name' => 'name',
+        'amountNeeded' => 'amount_needed',
+        'amountCollected' => 'amount_collected',
+        'deadline' => 'deadline',
+        'status' => 'status',
+    ];
 
     protected $operatorMap = [
         'like' => 'like',
         'eq' => '=',
+        'gt' => '>=',
+        'lt' => '<=',
     ];
 
     public function transform(Request $request)
