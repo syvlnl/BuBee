@@ -83,7 +83,7 @@ class TransactionResource extends Resource
                             });
                     })
                     ->getStateUsing(function ($record) {
-                        return $record->is_saving ? 'Saving' : ($record->category->name ?? '-');
+                        return $record->is_saving ? ($record->target->name) : ($record->category->name ?? '-');
                     }),
 
                 Tables\Columns\TextColumn::make('name')
@@ -94,7 +94,6 @@ class TransactionResource extends Resource
                         if ($record->is_saving && $record->target) {
                             return nl2br("{$name}\n" . e($record->target->name));
                         }
-
                         return $name;
                     })
                     ->html()
