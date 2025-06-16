@@ -67,6 +67,10 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-chat-bubble-left-right') 
                     ->group('Support') 
                     ->sort(99), 
-            ]);
+            ])
+            ->renderHook(
+                'panels::body.end',
+                fn () => view('footer')
+            );
     }
 }
