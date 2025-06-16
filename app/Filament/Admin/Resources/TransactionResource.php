@@ -90,10 +90,6 @@ class TransactionResource extends Resource
                     ->label('Name')
                     ->formatStateUsing(function (Transaction $record) {
                         $name = e($record->name);
-
-                        if ($record->is_saving && $record->target) {
-                            return nl2br("{$name}\n" . e($record->target->name));
-                        }
                         return $name;
                     })
                     ->html()
