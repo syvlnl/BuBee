@@ -21,26 +21,7 @@ export default {
   ],
 
   theme: {
-    extend: {
-      colors: {
-        'bee-light': '#fffaeb',
-        'bee-yellow': '#ffcd3f',
-        'bee-dark': '#d29c0a',
-        
-        'bee-primary': '#e5b400',
-        'bee-secondary': '#f4dc96',
-        'bee-accent': '#ffb742',
-        'bee-white': '#ffffff',
-        'bee-black': '#000000',
-      },
-    },
+    extend: {},
   },
-
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/aspect-ratio'),
-    require('@tailwindcss/container-queries'),
-  ],
+  plugins: [],
 };
-

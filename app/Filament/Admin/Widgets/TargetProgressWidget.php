@@ -20,7 +20,8 @@ class TargetProgressWidget extends Widget
         $this->target = Target::where('user_id', Auth::id())->first();
 
         if ($this->target && $this->target->amount_needed > 0) {
-            $this->percentage = round(($this->target->amount_collected / $this->target->amount_needed) * 100);
+            $progress = ($this->target->amount_collected / $this->target->amount_needed) * 100;
+            $this->percentage = min(round($progress), 100);
         }
     }
 

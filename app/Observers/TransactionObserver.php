@@ -16,6 +16,7 @@ class TransactionObserver
             $target = Target::find($transaction->target_id);
             if ($target) {
                 $target->increment('current_amount', $transaction->amount);
+                $target->save(); // trigger event saving untuk update status
             }
         }
     }
@@ -27,11 +28,12 @@ class TransactionObserver
     {
         $originalTargetId = $transaction->getOriginal('target_id');
         $originalAmount = $transaction->getOriginal('amount');
-        
+
         if ($originalTargetId && !$transaction->target_id) {
             $oldTarget = Target::find($originalTargetId);
             if ($oldTarget) {
                 $oldTarget->decrement('current_amount', $originalAmount);
+                $oldTarget->save(); // update status
             }
         }
 
@@ -41,15 +43,19 @@ class TransactionObserver
 
             if ($originalTargetId && $originalTargetId != $transaction->target_id) {
                 $oldTarget = Target::find($originalTargetId);
-                if ($oldTarget) $oldTarget->decrement('current_amount', $originalAmount);
+                if ($oldTarget) {
+                    $oldTarget->decrement('current_amount', $originalAmount);
+                    $oldTarget->save(); // update status
+                }
                 $newTarget->increment('current_amount', $transaction->amount);
-            } 
-            elseif ($originalTargetId == $transaction->target_id && $originalAmount != $transaction->amount) {
+                $newTarget->save(); // update status
+            } elseif ($originalTargetId == $transaction->target_id && $originalAmount != $transaction->amount) {
                 $difference = $transaction->amount - $originalAmount;
                 $newTarget->increment('current_amount', $difference);
-            }
-            elseif (!$originalTargetId) {
-                 $newTarget->increment('current_amount', $transaction->amount);
+                $newTarget->save(); // update status
+            } elseif (!$originalTargetId) {
+                $newTarget->increment('current_amount', $transaction->amount);
+                $newTarget->save(); // update status
             }
         }
     }
@@ -63,6 +69,7 @@ class TransactionObserver
             $target = Target::find($transaction->target_id);
             if ($target) {
                 $target->decrement('current_amount', $transaction->amount);
+                $target->save(); // update status
             }
         }
     }
