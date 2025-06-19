@@ -61,6 +61,9 @@ class AdminPanelProvider extends PanelProvider
             ->font(
                 'Poppins'
             )
+            ->viteTheme(
+                'resources/css/filament-theme.css'
+            )
             ->navigationItems([
                 NavigationItem::make('Contact Us')
                     ->url('https://wa.me/6281234567890', shouldOpenInNewTab: true) 

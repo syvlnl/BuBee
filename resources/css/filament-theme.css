@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hanya styling bagian atas yang kamu inginkan */
+.fi-sidebar-header {
+  background-color: #ffcd3f !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+.fi-topbar {
+  background-color: #ffcd3f !important;
+  color: #000000 !important;
+}
+
+.fi-topbar * {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
