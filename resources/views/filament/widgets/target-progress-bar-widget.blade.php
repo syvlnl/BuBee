@@ -26,7 +26,7 @@
         @else
             {{-- Tampilan jika user tidak memiliki data target --}}
             <div class="text-center">
-                <p class="text-gray-500 dark:text-gray-400">Anda belum memiliki target.</p>
+                <p class="text-gray-500 dark:text-gray-400">You don't have any targets yet!</p>
                 {{-- Opsional: Tambahkan tombol untuk membuat target baru --}}
                 {{-- <x-filament::button
                     tag="a"

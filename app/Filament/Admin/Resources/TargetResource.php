@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
+
 class TargetResource extends Resource
 {
     protected static ?string $model = Target::class;
@@ -33,12 +34,15 @@ class TargetResource extends Resource
                 Forms\Components\TextInput::make('amount_needed')
                     ->required()
                     ->numeric()
-                    ->prefix('Rp'),
+                    ->minValue(1)
+                    ->rules(['numeric', 'min:1'])
+                    ->prefix('Rp')
+                    ->label('Amount Needed'),
                 Forms\Components\TextInput::make('amount_collected')
                     ->disabled()
                     ->prefix('Rp')
                     ->label('Amount Collected')
-                    ->dehydrated(false) // jangan ikut disimpan
+                    ->dehydrated(false) 
                     ->default(fn(?Target $record) => $record?->amount_collected ?? 0),
                 Forms\Components\DatePicker::make('deadline')
                     ->required(),
@@ -68,9 +72,10 @@ class TargetResource extends Resource
                 ->label('Progress')
                 ->sortable(),
             Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->label('Status')
-                    ->color(fn (string $state): string => match ($state) {
+                ->state(fn(Target $record) => ($record->amount_collected >= $record->amount_needed) ? 'Completed' : 'On Progress')
+                ->badge()
+                ->label('Status')
+                ->color(fn (string $state): string => match ($state) {
                         'On Progress' => 'warning',
                         'Completed' => 'success',
                         default => 'gray',
@@ -91,14 +96,16 @@ class TargetResource extends Resource
                         Forms\Components\TextInput::make('amount_needed')
                             ->required()
                             ->numeric()
-                            ->prefix('Rp'),
+                            ->minValue(1)
+                            ->rules(['numeric', 'min:1'])
+                            ->prefix('Rp')
+                            ->label('Amount Needed'),
                         Forms\Components\DatePicker::make('deadline')
                             ->required(),
                     ])
                     ->action(fn(array $data) => Target::create([
                         ...$data,
                         'user_id' => Auth::id(),
-                        'amount_collected' => 0
                     ]))
             ])
             ->filters([
