@@ -4,8 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Budget Bee with Laravel')</title>
+    <title>@yield('title', 'Budget Bee')</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ asset('images/logo.png') }}" type="">
     <style>
         body {
             font-family: 'Poppins';

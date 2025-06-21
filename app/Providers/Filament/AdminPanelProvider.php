@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandLogo(null)
-            ->brandName('Budget Bee')
+            ->favicon('public/images/logo.png')
             ->topNavigation(false)
             ->colors([
                 'primary' => Color::Amber,
@@ -67,6 +67,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-chat-bubble-left-right') 
                     ->group('Support') 
                     ->sort(99), 
-            ]);
+            ])
+            ->sidebarCollapsibleOnDesktop();
     }
 }
