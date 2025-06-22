@@ -56,14 +56,6 @@ class TransactionResource extends Resource
                 Forms\Components\TextInput::make('amount')
                     ->required()
                     ->numeric(),
-
-                Forms\Components\Textarea::make('note')
-                    ->columnSpanFull()
-                    ->visible(fn(Get $get): bool => !$get('is_saving')),
-
-                Forms\Components\FileUpload::make('image')
-                    ->image()
-                    ->visible(fn(Get $get): bool => !$get('is_saving')),
             ]);
     }
 
@@ -94,7 +86,8 @@ class TransactionResource extends Resource
                     })
                     ->html()
                     ->wrap()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 Tables\Columns\IconColumn::make('type')
                     ->label('Type')
