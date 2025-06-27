@@ -15,7 +15,7 @@ Route::group(['prefix' => 'v1'], function () {
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('reset-password', [AuthController::class, 'resetPassword']);
     
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::apiResource('users', UserController::class);
         Route::apiResource('users.targets', TargetController::class);

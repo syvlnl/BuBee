@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\v1\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -19,13 +20,14 @@ class AuthController extends Controller
             'name' => 'required|string|max:50',
             'email' => 'required|email|unique:users|max:255',
             'password' => 'required|min:8|regex:/^(?=.*[A-Z])(?=.*\d).+$/',
+            'rememberMe' => 'required|boolean',
         ], [
             'password.regex' => 'Password must contain at least one uppercase letter and one number.',
             'password.min' => 'Password must be at least 8 characters.'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => $validator->errors()], 422);
         }
 
         $user = User::create([
@@ -34,12 +36,19 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Issue token (Sanctum)
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $abilities = $request->remember ? ['remember'] : [];
+        $abilities = array_filter($abilities);
+        $expiresAt = $request->remember ? now()->addWeek() : now()->addDay();
 
+        $tokenResult = $user->createToken('auth_token', $abilities);
+        $tokenResult->accessToken->expires_at = $expiresAt;
+        $tokenResult->accessToken->save();
+
+        $token = $tokenResult->plainTextToken;
+        
         return response()->json([
             'message' => 'Registration successful',
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token
         ], 201);
     }
@@ -47,25 +56,33 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|min:8',
+            'email' => 'required',
+            'password' => 'required',
+            'rememberMe' => 'required|boolean',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['message' => $validator->errors()], 422);
         }
 
         $user = User::where('email', $request->email)->first();
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!$user || !Hash::check($request->password, (string) $user->password)) {
+            return response()->json(['message' => 'Invalid Email or Password'], 401);
         }
 
-        // Issue token (Sanctum)
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $abilities = $request->remember ? ['remember'] : [];
+        $abilities = array_filter($abilities);
+        $expiresAt = $request->remember ? now()->addWeek() : now()->addDay();
+
+        $tokenResult = $user->createToken('auth_token', $abilities);
+        $tokenResult->accessToken->expires_at = $expiresAt;
+        $tokenResult->accessToken->save();
+
+        $token = $tokenResult->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token
         ]);
     }

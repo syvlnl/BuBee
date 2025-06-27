@@ -50,9 +50,9 @@ class Target extends Model
         return 'target_id';
     }
 
-    protected $casts = [
-        'deadline' => 'datetime',
-    ];
+    // protected $casts = [
+    //     'deadline' => 'datetime',
+    // ];
 
 }
 

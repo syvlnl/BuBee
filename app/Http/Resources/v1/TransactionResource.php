@@ -25,7 +25,9 @@ class TransactionResource extends JsonResource
             'amount' => $this->amount,
             'note' => $this->note,
             'image' => $this->image,
-            'category' => new CategoryResource($this->whenLoaded('category')),
+            'categoryName' => $this->whenLoaded('category') ? $this->category->name : null,
+            'categoryIsExpense' => $this->whenLoaded('category') ? $this->category->is_expense : null,
+            'targetName' => $this->whenLoaded('target') ? $this->target->name : null,
         ];
     }
 }

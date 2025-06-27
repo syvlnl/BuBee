@@ -18,8 +18,6 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            // Add categories if relationship exists
-            'categories' => isset($this->categories) ? CategoryResource::collection($this->categories) : null,
         ];
     }
 }
