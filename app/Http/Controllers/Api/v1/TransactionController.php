@@ -45,17 +45,17 @@ class TransactionController extends Controller
         }
         $rules = [
             'name' => 'required|string|max:50',
-            'category_id' => 'required|exists:categories,id',
-            'is_saving' => 'required|boolean',
-            'date_transaction' => 'required|date',
+            'categoryId' => 'required|exists:categories,id',
+            'isSaving' => 'required|boolean',
+            'dateTransaction' => 'required|date',
             'amount' => 'required|numeric|min:0',
             'note' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'target_id' => 'nullable|exists:targets,target_id',
+            'targetId' => 'nullable|exists:targets,target_id',
         ];
 
-        if ($request->input('is_saving')) {
-            $rules['target_id'] = 'required|exists:targets,target_id';
+        if ($request->input('isSaving')) {
+            $rules['targetId'] = 'required|exists:targets,target_id';
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -64,8 +64,8 @@ class TransactionController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        if($request->input('is_saving')){
-            $target = Target::find($request->target_id);
+        if($request->input('isSaving')){
+            $target = Target::find($request->targetId);
             if (!$target) {
                 return response()->json(['message' => 'Target not found'], 404);
             }
@@ -82,10 +82,10 @@ class TransactionController extends Controller
         $transaction = Transaction::create([
             'name' => $request->name,
             'user_id' => $user,
-            'category_id' => $request->category_id,
-            'target_id' => $request->target_id,
-            'is_saving' => $request->is_saving,
-            'date_transaction' => $request->date_transaction,
+            'category_id' => $request->categoryId,
+            'target_id' => $request->targetId,
+            'is_saving' => $request->isSaving,
+            'date_transaction' => $request->dateTransaction,
             'amount' => $request->amount,
             'note' => $request->note,
             'image' => $request->image,
