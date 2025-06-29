@@ -90,7 +90,12 @@ class TargetController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $target->update($request->only(array_keys($rules)));
+        $target->update([
+            'name' => $request->name,
+            'amount_needed' => $request->amountNeeded,
+            'amount_collected' => $request->amountCollected ?? $target->amount_collected,
+            'deadline' => $request->deadline,
+        ]);
 
         return new TargetResource($target->load('user'));
     }
