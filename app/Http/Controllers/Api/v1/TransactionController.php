@@ -75,8 +75,6 @@ class TransactionController extends Controller
             if ($target->status == 'Completed') {
                 return response()->json(['message' => 'Target is already completed'], 400);
             }
-            $target->amount_collected += $request->amount;
-            $target->save();
         }
 
         $transaction = Transaction::create([
@@ -117,23 +115,12 @@ class TransactionController extends Controller
         ];
         
         $isSavingNow = $request->has('isSaving') ? $request->input('isSaving') : $transaction->is_saving;
-        $wasSaving = $transaction->is_saving;
         
         if ($isSavingNow) {
             $rules['targetId'] = 'required|exists:targets,target_id';
-        }
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Check if 'is_saving' is being updated
-
-        // If changing from not saving to saving, add amount to target
-        if ($isSavingNow && !$wasSaving) {
-            $target = Target::find($request->targetId);
+            
+            $targetId = $request->has('targetId') ? $request->input('targetId') : $transaction->target_id;
+            $target = Target::find($targetId);
             if (!$target) {
                 return response()->json(['message' => 'Target not found'], 404);
             }
@@ -143,72 +130,9 @@ class TransactionController extends Controller
             if ($target->status == 'Completed') {
                 return response()->json(['message' => 'Target is already completed'], 400);
             }
-            // Use the provided amount if present, otherwise use the transaction's current amount
-            $amountToAdd = $request->has('amount') ? $request->input('amount') : $transaction->amount;
-            $target->amount_collected += $amountToAdd;
-            $target->save();
         }
 
-        // If changing from saving to not saving, subtract amount from target
-        if (!$isSavingNow && $wasSaving) {
-            $target = Target::find($transaction->target_id);
-            if ($target) {
-                $target->amount_collected -= $transaction->amount;
-                if ($target->amount_collected < 0) {
-                    $target->amount_collected = 0;
-                }
-                $target->save();
-            }
-        }
-
-        // If staying as saving but changing amount or target, update target calculations
-        if ($isSavingNow && $wasSaving) {
-            $oldAmount = $transaction->amount;
-            $newAmount = $request->has('amount') ? $request->input('amount') : $transaction->amount;
-            $oldTargetId = $transaction->target_id;
-            $newTargetId = $request->has('targetId') ? $request->input('targetId') : $transaction->target_id;
-
-            // If changing target
-            if ($oldTargetId != $newTargetId) {
-                // Remove from old target
-                if ($oldTargetId) {
-                    $oldTarget = Target::find($oldTargetId);
-                    if ($oldTarget) {
-                        $oldTarget->amount_collected -= $oldAmount;
-                        if ($oldTarget->amount_collected < 0) {
-                            $oldTarget->amount_collected = 0;
-                        }
-                        $oldTarget->save();
-                    }
-                }
-                
-                // Add to new target
-                if ($newTargetId) {
-                    $newTarget = Target::find($newTargetId);
-                    if ($newTarget) {
-                        if ($newTarget->user_id != $user) {
-                            return response()->json(['message' => 'Forbidden'], 403);
-                        }
-                        if ($newTarget->status == 'Completed') {
-                            return response()->json(['message' => 'Target is already completed'], 400);
-                        }
-                        $newTarget->amount_collected += $newAmount;
-                        $newTarget->save();
-                    }
-                }
-            } 
-            // If same target but different amount
-            elseif ($oldAmount != $newAmount && $oldTargetId) {
-                $target = Target::find($oldTargetId);
-                if ($target) {
-                    $target->amount_collected = $target->amount_collected - $oldAmount + $newAmount;
-                    if ($target->amount_collected < 0) {
-                        $target->amount_collected = 0;
-                    }
-                    $target->save();
-                }
-            }
-        }
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
