@@ -50,8 +50,7 @@ class CategoryController extends Controller
         $category = Category::create([
             'user_id' => $user,
             'name' => $request->name,
-            'is_expense' => $request->isExpense,
-            'image' => $request->file('image') ? $request->file('image')->store('categories', 'public') : null,
+            'is_expense' => $request->isExpense
         ]);
 
         return new CategoryResource($category);
@@ -70,8 +69,7 @@ class CategoryController extends Controller
 
         $rules = [
             'name' => 'sometimes|required|string|max:50',
-            'is_expense' => 'sometimes|required|boolean',
-            'image' => 'nullable|image|max:2048',
+            'is_expense' => 'sometimes|required|boolean'
         ];
 
         $validator = Validator::make($request->all(), $rules);

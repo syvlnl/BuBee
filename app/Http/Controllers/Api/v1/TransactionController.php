@@ -107,39 +107,41 @@ class TransactionController extends Controller
 
         $rules = [
             'name' => 'sometimes|required|string|max:50',
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'is_saving' => 'sometimes|required|boolean',
-            'date_transaction' => 'sometimes|required|date',
+            'categoryId' => 'sometimes|required|exists:categories,id',
+            'isSaving' => 'sometimes|required|boolean',
+            'dateTransaction' => 'sometimes|required|date',
             'amount' => 'sometimes|required|numeric|min:0',
             'note' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'target_id' => 'nullable|exists:targets,target_id',
+            'targetId' => 'nullable|exists:targets,target_id',
         ];
         
-        $isSavingNow = $request->has('is_saving') ? $request->input('is_saving') : $transaction->is_saving;
+        $isSavingNow = $request->has('isSaving') ? $request->input('isSaving') : $transaction->is_saving;
         $wasSaving = $transaction->is_saving;
         
-        if ($isSavingNow && !$wasSaving) {
-            $rules['target_id'] = 'required|exists:targets,target_id';
-        } elseif (!$isSavingNow && $wasSaving) {
-            $rules['target_id'] = 'nullable|exists:targets,target_id';
+        if ($isSavingNow) {
+            $rules['targetId'] = 'required|exists:targets,target_id';
         }
 
         $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
         // Check if 'is_saving' is being updated
 
         // If changing from not saving to saving, add amount to target
         if ($isSavingNow && !$wasSaving) {
-            $target = Target::find($request->target_id);
+            $target = Target::find($request->targetId);
             if (!$target) {
-            return response()->json(['message' => 'Target not found'], 404);
+                return response()->json(['message' => 'Target not found'], 404);
             }
             if ($target->user_id != $user) {
-            return response()->json(['message' => 'Forbidden'], 403);
+                return response()->json(['message' => 'Forbidden'], 403);
             }
             if ($target->status == 'Completed') {
-            return response()->json(['message' => 'Target is already completed'], 400);
+                return response()->json(['message' => 'Target is already completed'], 400);
             }
             // Use the provided amount if present, otherwise use the transaction's current amount
             $amountToAdd = $request->has('amount') ? $request->input('amount') : $transaction->amount;
@@ -157,21 +159,93 @@ class TransactionController extends Controller
                 }
                 $target->save();
             }
-            $request->merge(['target_id' => null]);
+        }
+
+        // If staying as saving but changing amount or target, update target calculations
+        if ($isSavingNow && $wasSaving) {
+            $oldAmount = $transaction->amount;
+            $newAmount = $request->has('amount') ? $request->input('amount') : $transaction->amount;
+            $oldTargetId = $transaction->target_id;
+            $newTargetId = $request->has('targetId') ? $request->input('targetId') : $transaction->target_id;
+
+            // If changing target
+            if ($oldTargetId != $newTargetId) {
+                // Remove from old target
+                if ($oldTargetId) {
+                    $oldTarget = Target::find($oldTargetId);
+                    if ($oldTarget) {
+                        $oldTarget->amount_collected -= $oldAmount;
+                        if ($oldTarget->amount_collected < 0) {
+                            $oldTarget->amount_collected = 0;
+                        }
+                        $oldTarget->save();
+                    }
+                }
+                
+                // Add to new target
+                if ($newTargetId) {
+                    $newTarget = Target::find($newTargetId);
+                    if ($newTarget) {
+                        if ($newTarget->user_id != $user) {
+                            return response()->json(['message' => 'Forbidden'], 403);
+                        }
+                        if ($newTarget->status == 'Completed') {
+                            return response()->json(['message' => 'Target is already completed'], 400);
+                        }
+                        $newTarget->amount_collected += $newAmount;
+                        $newTarget->save();
+                    }
+                }
+            } 
+            // If same target but different amount
+            elseif ($oldAmount != $newAmount && $oldTargetId) {
+                $target = Target::find($oldTargetId);
+                if ($target) {
+                    $target->amount_collected = $target->amount_collected - $oldAmount + $newAmount;
+                    if ($target->amount_collected < 0) {
+                        $target->amount_collected = 0;
+                    }
+                    $target->save();
+                }
+            }
         }
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $dataToUpdate = $request->only(array_keys($rules));
-        // Ensure amount is always set for update logic
-        if (!$request->has('amount') && in_array('amount', array_keys($rules))) {
-            $dataToUpdate['amount'] = $transaction->amount;
+        // Prepare data for update with proper field mapping
+        $dataToUpdate = [];
+        
+        if ($request->has('name')) {
+            $dataToUpdate['name'] = $request->input('name');
         }
-        if ($request->has('is_saving') && !$isSavingNow) {
+        if ($request->has('categoryId')) {
+            $dataToUpdate['category_id'] = $request->input('categoryId');
+        }
+        if ($request->has('isSaving')) {
+            $dataToUpdate['is_saving'] = $request->input('isSaving');
+        }
+        if ($request->has('dateTransaction')) {
+            $dataToUpdate['date_transaction'] = $request->input('dateTransaction');
+        }
+        if ($request->has('amount')) {
+            $dataToUpdate['amount'] = $request->input('amount');
+        }
+        if ($request->has('note')) {
+            $dataToUpdate['note'] = $request->input('note');
+        }
+        if ($request->has('image')) {
+            $dataToUpdate['image'] = $request->input('image');
+        }
+        
+        // Handle target_id based on is_saving status
+        if (!$isSavingNow) {
             $dataToUpdate['target_id'] = null;
+        } elseif ($request->has('targetId')) {
+            $dataToUpdate['target_id'] = $request->input('targetId');
         }
+
         $transaction->update($dataToUpdate);
 
         $transaction->load(['user', 'category', 'target']);
@@ -189,5 +263,45 @@ class TransactionController extends Controller
         }
         $transaction->delete();
         return response()->json(['message' => 'Deleted successfully']);
+    }
+
+    public function getIncome($user, Request $request)
+    {
+        if (Auth::user()->id != $user) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+        $filter = new TransactionQuery();
+        $queryItems = $filter->transform($request);
+        $income = Transaction::where('user_id', $user)
+            ->where('is_saving', false)
+            ->where('amount', '>', 0)
+            ->whereMonth('date_transaction', now()->month)
+            ->whereYear('date_transaction', now()->year)
+            ->where($queryItems)
+            ->whereHas('category', function ($query) {
+            $query->where('is_expense', false);
+            })
+            ->sum('amount');
+        return response()->json(['income' => $income]);
+    }
+
+    public function getExpense($user, Request $request)
+    {
+        if (Auth::user()->id != $user) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+        $filter = new TransactionQuery();
+        $queryItems = $filter->transform($request);
+        $expense = Transaction::where('user_id', $user)
+            ->where('is_saving', false)
+            ->where('amount', '>', 0)
+            ->whereMonth('date_transaction', now()->month)
+            ->whereYear('date_transaction', now()->year)
+            ->where($queryItems)
+            ->whereHas('category', function ($query) {
+                $query->where('is_expense', true);
+            })
+            ->sum('amount');
+        return response()->json(['expense' => $expense]);
     }
 }

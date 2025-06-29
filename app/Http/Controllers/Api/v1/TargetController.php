@@ -46,8 +46,7 @@ class TargetController extends Controller
 
         $rules = [
             'name' => 'required|string|max:50',
-            'amount_needed' => 'required|numeric|min:0',
-            'amount_collected' => 'nullable|numeric|min:0',
+            'amountNeeded' => 'required|numeric|min:0',
             'deadline' => 'required|date',
         ];
 
@@ -60,7 +59,7 @@ class TargetController extends Controller
         $target = Target::create([
             'name' => $request->name,
             'user_id' => $user,
-            'amount_needed' => $request->amount_needed,
+            'amount_needed' => $request->amountNeeded,
             'amount_collected' => 0,
             'deadline' => $request->deadline,
         ]);
@@ -80,8 +79,8 @@ class TargetController extends Controller
 
         $rules = [
             'name' => 'required|string|max:50',
-            'amount_needed' => 'required|numeric|min:0',
-            'amount_collected' => 'nullable|numeric|min:0',
+            'amountNeeded' => 'required|numeric|min:0',
+            'amountCollected' => 'nullable|numeric|min:0',
             'deadline' => 'required|date',
         ];
 
