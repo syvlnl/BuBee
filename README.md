@@ -1,3 +1,49 @@
+# 🚀 Laravel + Filament + MySQL
+
+BudgetBee adalah aplikasi web berbasis Laravel yang menggunakan **Filament Admin Panel** dan **MySQL** sebagai database. Panduan ini akan membantumu menginstal dan menjalankan proyek ini dari awal.
+
+## 📦 Requirements
+
+Pastikan kamu sudah menginstal:
+
+- PHP >= 8.1
+- Composer
+- MySQL / MariaDB
+- Git
+- Laravel CLI (`composer global require laravel/installer`)
+
+## 🔧 Instalasi Langkah Demi Langkah
+
+### 1. Clone Project
+git clone https://github.com/syvlnl/BuBee.git
+cd Bubee
+
+## 2. Install Dependency Laravel
+composer install
+
+## 3. Copy File Environment dan Generate App Key
+cp .env.example .env
+php artisan key:generate
+
+## 4. Konfigurasi .env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bubedb
+DB_USERNAME=root
+DB_PASSWORD=
+
+## 5. Jalankan Migrasi
+php artisan migrate
+
+## 6. Buat Storage Link
+php artisan storage:link
+
+## 7. Jalankan Server
+php artisan serve
+
+## License
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
